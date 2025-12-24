@@ -1,4 +1,4 @@
-# Block YouTube Shorts 🚫▶️
+# Block YouTube Shorts 
 
 I built **Block YouTube Shorts** to solve a simple but frustrating problem:
 when I open YouTube to study or work, **YouTube Shorts hijack my attention**.
@@ -63,8 +63,8 @@ You can test this extension on your own machine in under a minute.
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
+git clone https://github.com/Bharadwajreddy1406/YT_shorts-blocker.git
+cd YT_shorts-blocker
 ```
 
 ---
