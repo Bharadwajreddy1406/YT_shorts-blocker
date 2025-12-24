@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Block YouTube Shorts",
+  "description": "Blocks YouTube Shorts while allowing normal YouTube videos.",
+  "version": "1.0",
+
+  "permissions": ["webNavigation"],
+  "host_permissions": ["*://www.youtube.com/*"],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+
+  "action": {
+    "default_title": "Block YouTube Shorts"
+  }
+}
