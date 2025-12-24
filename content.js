@@ -1,138 +1,114 @@
-/* ===================== UTILITIES ===================== */
+(() => {
+  const SHORTS_PATH_REGEX = /^\/shorts\/.+/;
 
-let lastPath = window.location.pathname;
-let scheduled = false;
-
-/* ===================== SHORTS REMOVAL ===================== */
-
-function removeShortsEverywhere() {
-  // Remove Shorts shelf on homepage
-  document.querySelectorAll("ytd-rich-section-renderer").forEach((section) => {
-    if (section.innerText.toLowerCase().includes("shorts")) {
-      section.remove();
+  /* ---------- 1. HARD BLOCK DIRECT /shorts URLs ---------- */
+  function handleShortsURL() {
+    if (SHORTS_PATH_REGEX.test(location.pathname)) {
+      showBlockedModal();
+      return true;
     }
-  });
-
-  // Remove Shorts cards from feeds/search
-  document
-    .querySelectorAll('ytd-video-renderer a[href*="/shorts/"]')
-    .forEach((link) => {
-      const card = link.closest("ytd-video-renderer");
-      if (card) card.remove();
-    });
-
-  // Disable remaining Shorts links safely
-  document.querySelectorAll('a[href*="/shorts/"]').forEach((a) => {
-    a.style.pointerEvents = "none";
-    a.style.opacity = "0.5";
-  });
-}
-
-/* ===================== BLOCKING POPUP ===================== */
-
-function showBlockingPopup() {
-  if (document.getElementById("yt-shorts-blocker-overlay")) return;
-
-  const overlay = document.createElement("div");
-  overlay.id = "yt-shorts-blocker-overlay";
-  overlay.style.position = "fixed";
-  overlay.style.inset = "0";
-  overlay.style.background = "rgba(0,0,0,0.85)";
-  overlay.style.zIndex = "999999";
-  overlay.style.display = "flex";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-
-  const modal = document.createElement("div");
-  modal.style.background = "#fff";
-  modal.style.padding = "16px 18px 20px";
-  modal.style.borderRadius = "14px";
-  modal.style.textAlign = "center";
-  modal.style.position = "relative";
-  modal.style.maxWidth = "340px";
-  modal.style.width = "90%";
-  modal.style.boxShadow = "0 20px 40px rgba(0,0,0,0.3)";
-
-  /* ---------- CLOSE BUTTON (OUTSIDE IMAGE) ---------- */
-  const closeBtn = document.createElement("button");
-  closeBtn.innerText = "✖";
-  closeBtn.setAttribute("aria-label", "Close and go to YouTube");
-  closeBtn.style.position = "absolute";
-  closeBtn.style.top = "10px";
-  closeBtn.style.right = "12px";
-  closeBtn.style.border = "none";
-  closeBtn.style.background = "transparent";
-  closeBtn.style.fontSize = "18px";
-  closeBtn.style.cursor = "pointer";
-  closeBtn.style.color = "#666";
-
-  closeBtn.onclick = () => {
-    window.location.href = "https://www.youtube.com/";
-  };
-
-  /* ---------- GIF CONTAINER ---------- */
-  const gifWrapper = document.createElement("div");
-  gifWrapper.style.marginTop = "10px";
-  gifWrapper.style.padding = "12px";
-  gifWrapper.style.borderRadius = "12px";
-  gifWrapper.style.background = "#f5f5f5";
-
-  const gif = document.createElement("img");
-  gif.src = chrome.runtime.getURL("blocked.gif");
-  gif.alt = "Blocked";
-  gif.style.width = "100%";
-  gif.style.borderRadius = "8px";
-  gif.style.display = "block";
-
-  gifWrapper.appendChild(gif);
-
-  /* ---------- TEXT ---------- */
-  const text = document.createElement("p");
-  text.innerText = "Shorts are blocked. Stay focused.";
-  text.style.marginTop = "14px";
-  text.style.fontSize = "14px";
-  text.style.color = "#444";
-
-  modal.appendChild(closeBtn);
-  modal.appendChild(gifWrapper);
-  modal.appendChild(text);
-  overlay.appendChild(modal);
-
-  overlay.addEventListener("click", (e) => e.stopPropagation());
-  document.body.appendChild(overlay);
-}
-
-/* ===================== ROUTE HANDLING ===================== */
-
-function handleRouteChange() {
-  if (window.location.pathname.startsWith("/shorts")) {
-    showBlockingPopup();
-  } else {
-    removeShortsEverywhere();
+    return false;
   }
-}
 
-/* ===================== INITIAL RUN ===================== */
+  /* ---------- 2. REMOVE ALL SHORTS ELEMENTS ---------- */
+  function removeShorts() {
+    const selectors = [
+      "ytd-rich-shelf-renderer[is-shorts]",
+      "ytd-rich-section-renderer",
+      "ytd-reel-shelf-renderer",
+      'ytd-guide-entry-renderer a[href^="/shorts"]',
+      'a[href^="/shorts"]',
+      'ytd-mini-guide-entry-renderer a[href^="/shorts"]',
+    ];
 
-handleRouteChange();
+    selectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((el) => {
+        el.remove();
+      });
+    });
+  }
 
-/* ===================== SPA OBSERVER ===================== */
+  /* ---------- 3. MODAL FOR BLOCKED SHORTS ---------- */
+  function showBlockedModal() {
+    if (document.getElementById("__yt_shorts_blocked")) return;
 
-const observer = new MutationObserver(() => {
-  if (scheduled) return;
-  scheduled = true;
+    const inject = () => {
+      if (!document.body) {
+        requestAnimationFrame(inject);
+        return;
+      }
 
-  requestAnimationFrame(() => {
-    scheduled = false;
+      document.documentElement.style.overflow = "hidden";
 
-    if (window.location.pathname !== lastPath) {
-      lastPath = window.location.pathname;
-      handleRouteChange();
+      const overlay = document.createElement("div");
+      overlay.id = "__yt_shorts_blocked";
+      overlay.style = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `;
+
+      const box = document.createElement("div");
+      box.style = `
+      background: #111;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      position: relative;
+    `;
+
+      const img = document.createElement("img");
+      img.src = chrome.runtime.getURL("blocked.gif");
+      img.style = "max-width: 300px;";
+
+      const close = document.createElement("button");
+      close.textContent = "✕";
+      close.style = `
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: none;
+      color: white;
+      font-size: 20px;
+      border: none;
+      cursor: pointer;
+    `;
+
+      close.onclick = () => {
+        document.documentElement.style.overflow = "";
+        location.replace("https://www.youtube.com/");
+      };
+
+      box.append(close, img);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+    };
+
+    inject();
+  }
+
+  /* ---------- 4. OBSERVE SPA NAVIGATION ---------- */
+  let lastPath = location.pathname;
+
+  const observer = new MutationObserver(() => {
+    if (location.pathname !== lastPath) {
+      lastPath = location.pathname;
+      if (handleShortsURL()) return;
     }
+    removeShorts();
   });
-});
 
-observer.observe(document.body, {
-  childList: true,
-  subtree: true,
-});
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+
+  /* ---------- INITIAL RUN ---------- */
+  if (!handleShortsURL()) {
+    removeShorts();
+  }
+})();

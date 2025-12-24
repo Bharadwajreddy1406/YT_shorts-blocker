@@ -1,24 +1,24 @@
 {
   "manifest_version": 3,
-  "name": "Block YouTube Shorts",
-  "version": "1.0",
-  "description": "Blocks YouTube Shorts and keeps you focused.",
+  "name": "YouTube Shorts Blocker",
+  "version": "1.0.0",
+  "description": "Removes YouTube Shorts completely and blocks direct access.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "host_permissions": ["*://www.youtube.com/*"],
   "content_scripts": [
     {
       "matches": ["*://www.youtube.com/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": ["blocked.gif"],
-      "matches": ["<all_urls>"]
+      "matches": ["*://www.youtube.com/*"]
     }
   ]
 }
