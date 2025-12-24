@@ -45,6 +45,10 @@ function showBlockingPopup() {
 
   const modal = document.createElement("div");
   modal.style.background = "#fff";
+  modal.style.padding = "16px 18px 20px";
+  modal.style.borderRadius = "14px";
+  modal.style.textAlign = "center";
+  modal.style.position = "relative";
   modal.style.maxWidth = "340px";
   modal.style.width = "90%";
   modal.style.boxShadow = "0 20px 40px rgba(0,0,0,0.3)";
